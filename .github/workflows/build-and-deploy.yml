@@ -1,0 +1,32 @@
+name: Vite Github Pages Deployer
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build project
+        run: yarn build
+
+      - name: Deploy to GitHub Pages
+        uses: skywarth/vite-github-pages-deployer@v1.1.0
+        with:
+          public_base_path: /${{ github.event.repository.name }}
+          build_path: ./dist
+          artifact_name: github-pages
+          debug_mode: false
+          package_manager: yarn
