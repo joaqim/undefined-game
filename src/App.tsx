@@ -11,6 +11,7 @@ import { Bullets } from "./game/entities/Bullets";
 import { Player } from "./game/entities/Player";
 import { ECS } from "./game/state";
 import { Systems } from "./game/Systems";
+import { Dice } from "./game/entities/Dice";
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
             <Player />
             <Asteroids />
             <Bullets />
+              <Dice />
 
             {/* We've bundled all game systems in a top-level <Systems/> component. */}
             <Systems />
