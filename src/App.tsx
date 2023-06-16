@@ -4,11 +4,8 @@ import {
   OrthographicCamera,
   PerspectiveCamera,
 } from "@react-three/drei";
-import { StrictMode, Suspense } from "react";
+import { Suspense } from "react";
 import * as RC from "render-composer";
-import { Asteroids } from "./game/entities/Asteroids";
-import { Bullets } from "./game/entities/Bullets";
-import { Player } from "./game/entities/Player";
 import { ECS } from "./game/state";
 import { Systems } from "./game/Systems";
 import { Dice } from "./game/entities/Dice";
@@ -28,9 +25,6 @@ function App() {
           {/* Define an EffectPass with some postprocessing */}
           <RC.EffectPass>
             <RC.SMAAEffect />
-            {/* <RC.TiltShiftEffect focusArea={6} kernelSize={4} feather={10} /> */}
-            <RC.SelectiveBloomEffect intensity={5} />
-            <RC.VignetteEffect darkness={0.4} />
           </RC.EffectPass>
 
           {/* Scene Background */}
@@ -57,7 +51,7 @@ function App() {
                   */}
                 <OrthographicCamera
                   position={[0, 0, 10]}
-                  zoom={20}
+                  zoom={200}
                   makeDefault
                   matrixWorldAutoUpdate={undefined}
                   getObjectsByProperty={undefined}
@@ -66,10 +60,7 @@ function App() {
             </ECS.Entity>
 
             {/* The actual game entities: */}
-            <Player />
-            <Asteroids />
-            <Bullets />
-              <Dice />
+            <Dice />
 
             {/* We've bundled all game systems in a top-level <Systems/> component. */}
             <Systems />

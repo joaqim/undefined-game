@@ -2,7 +2,6 @@ import { With, World } from "miniplex";
 import createReactAPI from "miniplex/react";
 import { ReactNode } from "react";
 import { Object3D } from "three";
-import { PhysicsData } from "./systems/PhysicsSystem";
 
 /*
 Some constants we will be using for defining collisions masks for
@@ -55,7 +54,7 @@ export type Entity = {
   neighbors?: Entity[];
 
   /* Simulate physics. */
-  physics?: PhysicsData;
+  physics?: any;
 
   render?: ReactNode;
 };
