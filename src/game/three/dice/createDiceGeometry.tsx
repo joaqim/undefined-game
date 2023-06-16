@@ -4,22 +4,20 @@ import { SimplifyModifier } from "three-stdlib";
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 type SimplifyGeometryParams = {
-    method: "quadric";
+    method: "quadric" | "simple";
     aggressiveness: number;
     targetPercentage: number;
 };
 
-export interface DiceGeometryParams {
-    numberOfDice: number,
-    segments: number;
-    edgeRadius: number;
-    notchRadius: number;
-    notchDepth: number;
-    simplify?: SimplifyGeometryParams
+export interface DiceFactoryOptions {
+    segments?: number;
+    edgeRadius?: number;
+    notchRadius?: number;
+    notchDepth?: number;
+    simplify?: SimplifyGeometryParams;
 };
 
-const default_dice_geometry: DiceGeometryParams = {
-    numberOfDice: 2,
+const default_dice_geometry: Required<DiceFactoryOptions> = {
     segments: 40,
     edgeRadius: .07,
     notchRadius: .12,
@@ -33,21 +31,19 @@ const default_dice_geometry: DiceGeometryParams = {
 
 
 
-export class DiceFactory implements DiceGeometryParams {
-    numberOfDice: number;
+export class DiceFactory implements DiceFactoryOptions {
     segments: number;
     edgeRadius: number;
     notchRadius: number;
     notchDepth: number;
-    simplify?: SimplifyGeometryParams;
+    simplify: SimplifyGeometryParams;
 
-    constructor(params?: Partial<DiceGeometryParams>) {
+    constructor(params?: Partial<DiceFactoryOptions>) {
         const params_ = {
             ...default_dice_geometry,
             ...params
         }
 
-        this.numberOfDice = params_.numberOfDice;
         this.segments = params_.segments;
         this.edgeRadius = params_.edgeRadius;
         this.notchRadius = params_.notchRadius;
@@ -165,22 +161,21 @@ export class DiceFactory implements DiceGeometryParams {
         // Delete duplicate vertices
         const bufferBoxGeometry = BufferGeometryUtils.mergeVertices(boxGeometry);
 
-        if (this.simplify?.method == 'quadric') {
-            const simplifier = new FastQuadric({ aggressiveness: 3, targetPercentage: 0.10 });
+        if (this.simplify.method == 'quadric') {
+            const simplifier = new FastQuadric({ aggressiveness: this.simplify.aggressiveness, targetPercentage: this.simplify.targetPercentage });
 
             const adaptedGeometry = new ThreeGeometry(bufferBoxGeometry);
             simplifier.simplify(adaptedGeometry);
 
-            //console.log(bufferBoxGeometry.getAttribute('position').count)
+            console.log(bufferBoxGeometry.getAttribute('position').count)
             return bufferBoxGeometry
-        } else if (this.simplify?.method == 'default') {
+        } else /* if (this.simplify.method == "simple") */ {
             const verticesCount = bufferBoxGeometry.getAttribute('position').count;
             const simplified = new SimplifyModifier().modify(bufferBoxGeometry, (verticesCount * (this.simplify.aggressiveness / 10)) * (1 - this.simplify.targetPercentage) | 0);
             simplified.computeVertexNormals()
-            //console.log(simplified.getAttribute('position').count)
+            console.log(simplified.getAttribute('position').count)
             return simplified;
         }
-        return bufferBoxGeometry;
     }
 
     // Inner Box of Dice that fills the dice face

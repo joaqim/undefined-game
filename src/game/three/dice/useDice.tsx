@@ -1,8 +1,9 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef, useMemo, useState, useEffect } from "react";
-import { Mesh, Material, BufferGeometry, MeshStandardMaterial, Vector3, Euler } from "three";
-import { DiceFactory } from "./createDiceGeometry";
+import { Mesh, Material, BufferGeometry, MeshStandardMaterial, Vector3 } from "three";
+import { DiceFactory, DiceFactoryOptions } from "./createDiceGeometry";
 import { useSleepDetection } from "../../../library";
+import { getDiceRollFromRotation } from "../../util/getDiceRollFromRotation";
 
 interface UseDiceOptions {
     rotationSpeed?: number;
@@ -18,46 +19,28 @@ const DEFAULT_OPTIONS: Required<UseDiceOptions> = {
     rotationSpeed: 0.01,
     sleepThreshold: 0.0001,
     numberOfDice: 1,
-    positions: [new Vector3(0, 0, 0)],
+    positions: [
+        new Vector3(0, 0, 0),
+        new Vector3(0, 1.5, 0),
+        new Vector3(0, -1.5, 0),
+
+        new Vector3(1.5, 0, 0),
+        new Vector3(-1.5, 0, 0),
+
+        new Vector3(1.5, 1.5, 0),
+        new Vector3(-1.5, 1.5, 0),
+
+        new Vector3(1.5, -1.5, 0),
+        new Vector3(-1.5, -1.5, 0),
+    ],
     diceResultSumFunc(previousValue, currentValue) {
         return previousValue + currentValue
     },
 }
-const getDiceRollFromRotation = (rotation: Euler, epsilon: number = 0.1) => {
-
-    let isZero = (angle: number) => Math.abs(angle) < epsilon;
-    let isHalfPi = (angle: number) => Math.abs(angle - .5 * Math.PI) < epsilon;
-    let isMinusHalfPi = (angle: number) => Math.abs(.5 * Math.PI + angle) < epsilon;
-    let isPiOrMinusPi = (angle: number) => (Math.abs(Math.PI - angle) < epsilon || Math.abs(Math.PI + angle) < epsilon);
-
-
-    if (isZero(rotation.z)) {
-        if (isZero(rotation.x)) {
-            return 1
-        } else if (isHalfPi(rotation.x)) {
-            return 4
-        } else if (isMinusHalfPi(rotation.x)) {
-            return 3
-        } else if (isPiOrMinusPi(rotation.x)) {
-            return 6
-        } else {
-            // landed on edge => wait to fall on side and fire the event again
-            return null
-        }
-    } else if (isHalfPi(rotation.z)) {
-        return 2
-    } else if (isMinusHalfPi(rotation.z)) {
-        return 5
-    } else {
-        // landed on edge
-        return null
-    }
-}
 
 type DiceMesh = Mesh<BufferGeometry, Material | Material[]>
 
-// TODO: useDice should accept {numberOfDice: number, positions: Vector3[]} }
-// also return function for rolling dice and and reseting dice
+// TODO: useDice should return function for rolling dice and and resetting dice
 export const useDice = (options: UseDiceOptions = DEFAULT_OPTIONS) => {
     const { rotationSpeed, sleepThreshold, numberOfDice, positions } = { ...DEFAULT_OPTIONS, ...options };
 
@@ -99,10 +82,9 @@ export const useDice = (options: UseDiceOptions = DEFAULT_OPTIONS) => {
                 if (!diceResult) {
                     setSleeping(false)
                     setTiltCount(tiltCount + 1)
-                    return
+                    continue;
                 }
                 setResult(diceResult)
-                console.log(diceResult)
             }
         }
 
@@ -119,9 +101,19 @@ export const useDice = (options: UseDiceOptions = DEFAULT_OPTIONS) => {
 
     });
 
+    const diceOptions: DiceFactoryOptions = {
+        simplify: {
+            method: "quadric",
+            aggressiveness: 3,
+            targetPercentage: .15
+        }
+    }
     const geometry = useMemo(() => {
-        return new DiceFactory().createDie();
-    }, []);
+        return new DiceFactory(
+            diceOptions
+
+        ).createDie();
+    }, [diceOptions]);
 
     const materials = useMemo(() => {
         const boxMaterialOuter = new MeshStandardMaterial({
